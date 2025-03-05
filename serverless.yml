@@ -11,7 +11,7 @@ provider:
   stage: dev
   region: us-east-1
   environment:
-    DYNAMODB_TABLE: ${self:service}-${opt:stage, self:provider.stage}
+    DYNAMODB_TABLE: memeoftable
   iam:
     role:
       statements:
@@ -23,43 +23,33 @@ provider:
             - dynamodb:PutItem
             - dynamodb:UpdateItem
             - dynamodb:DeleteItem
-          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/${self:provider.environment.DYNAMODB_TABLE}"
+          Resource: "arn:aws:dynamodb:${opt:region, self:provider.region}:*:table/memeoftable"
 
 functions:
-  hello:
-    handler: handler.index
+  uploadMeme:
+    handler: handler.uploadMeme
     events:
       - http:
-          path: ""
-          method: get
-
-  createUrl:
-    handler: handler.createUrl
-    events:
-      - http:
-          path: url
+          path: upload
           method: post
-
-  listUrls:
-    handler: handler.listUrls
+  downloadMeme:
+    handler: handler.downloadMeme
+    events:
+      - http:
+          path: download/{key}
+          method: get
+  listImages:
+    handler: handler.listImages
     events:
       - http:
           path: url
           method: get
-
-  getUrl:
-    handler: handler.getUrl
-    events:
-      - http:
-          path: url/{key}
-          method: get
-
 resources:
   Resources:
     UrlTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:provider.environment.DYNAMODB_TABLE}
+        TableName: memeoftable
         AttributeDefinitions:
           - AttributeName: key
             AttributeType: S
